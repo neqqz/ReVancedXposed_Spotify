@@ -1,7 +1,6 @@
 package io.github.chsbuffer.revancedxposed.spotify.misc
 
 import io.github.chsbuffer.revancedxposed.AccessFlags
-import io.github.chsbuffer.revancedxposed.Opcode
 import io.github.chsbuffer.revancedxposed.SkipTest
 import io.github.chsbuffer.revancedxposed.findClassDirect
 import io.github.chsbuffer.revancedxposed.findFieldDirect
@@ -27,18 +26,11 @@ val buildQueryParametersFingerprint = findMethodDirect {
     }.single()
 }
 val contextFromJsonFingerprint = fingerprint {
-    opcodes(
-        Opcode.INVOKE_STATIC,
-        Opcode.MOVE_RESULT_OBJECT,
-        Opcode.INVOKE_VIRTUAL,
-        Opcode.MOVE_RESULT_OBJECT,
-        Opcode.INVOKE_STATIC
-    )
+    returns("Lcom/spotify/player/model/Context;")
+    parameters("Lp/fzq;")
     methodMatcher {
-        name("fromJson")
-        declaredClass(
-            "voiceassistants.playermodels.ContextJsonAdapter", StringMatchType.EndsWith
-        )
+        name("deserialize")
+        declaredClass("com.spotify.voiceassistants.playermodels.ContextSerializer")
     }
 }
 
@@ -56,17 +48,6 @@ val contextMenuViewModelClass = findClassDirect {
     }.declaredClass!!
 }
 
-val viewModelClazz = findClassDirect {
-    findMethod {
-        findFirst = true
-        matcher { name("getViewModel") }
-    }.single().returnType!!
-}
-
-val isPremiumUpsellField = findFieldDirect {
-    viewModelClazz().fields.filter { it.typeName == "boolean" }[1]
-}
-
 @SkipTest
 fun structureGetSectionsFingerprint(className: String) = fingerprint {
     classMatcher { className(className, StringMatchType.EndsWith) }
@@ -79,7 +60,7 @@ fun structureGetSectionsFingerprint(className: String) = fingerprint {
 }
 
 val homeStructureGetSectionsFingerprint =
-    structureGetSectionsFingerprint("homeapi.proto.HomeStructure")
+    structureGetSectionsFingerprint("casita.v1.resolved.HomeStructure")
 val browseStructureGetSectionsFingerprint =
     structureGetSectionsFingerprint("browsita.v1.resolved.BrowseStructure")
 

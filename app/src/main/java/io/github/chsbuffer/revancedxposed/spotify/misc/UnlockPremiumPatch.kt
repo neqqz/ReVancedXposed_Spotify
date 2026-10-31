@@ -6,13 +6,36 @@ import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import io.github.chsbuffer.revancedxposed.callMethod
-import io.github.chsbuffer.revancedxposed.findField
 import io.github.chsbuffer.revancedxposed.findFirstFieldByExactType
 import io.github.chsbuffer.revancedxposed.spotify.SpotifyHook
 import org.luckypray.dexkit.wrap.DexField
 import org.luckypray.dexkit.wrap.DexMethod
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
+
+/**
+ * Context menu item IDs which lead to a Premium upsell/ad.
+ * The item model is obfuscated and its field names change between releases, so the ID is read
+ * reflectively from every String field instead of relying on a fixed field name.
+ */
+private val premiumContextMenuItemIds = setOf(
+    "context_menu_remove_ads",
+    "playlist_entity_reinventfree_adsfree_context_menu_item",
+)
+
+private fun isPremiumContextMenuItem(item: Any?): Boolean {
+    if (item == null) return false
+    return item.javaClass.declaredFields.any { field ->
+        if (field.type != String::class.java) return@any false
+        val value = runCatching {
+            field.isAccessible = true
+            field.get(item) as? String
+        }.getOrNull() ?: return@any false
+        value.startsWith("premium_destination_") ||
+            value.startsWith("playlist_entity_reinventfree_") ||
+            value in premiumContextMenuItemIds
+    }
+}
 
 @Suppress("UNCHECKED_CAST")
 fun SpotifyHook.UnlockPremium() {
@@ -41,14 +64,18 @@ fun SpotifyHook.UnlockPremium() {
     // Enable choosing a specific song/artist via Google Assistant.
     ::contextFromJsonFingerprint.hookMethod {
         fun removeStationString(field: Field, obj: Any) {
-            field.set(obj, UnlockPremiumPatch.removeStationString(field.get(obj) as String))
+            val value = field.get(obj) as? String ?: return
+            field.set(obj, UnlockPremiumPatch.removeStationString(value))
         }
 
         after { param ->
-            val thiz = param.result
-            val clazz = param.result.javaClass
-            removeStationString(clazz.findField("uri"), thiz)
-            removeStationString(clazz.findField("url"), thiz)
+            val thiz = param.result ?: return@after
+            val clazz = thiz.javaClass
+            for (name in arrayOf("uri", "url")) {
+                val field = clazz.declaredFields.firstOrNull { it.name == name } ?: continue
+                field.isAccessible = true
+                removeStationString(field, thiz)
+            }
         }
     }
 
@@ -67,8 +94,6 @@ fun SpotifyHook.UnlockPremium() {
     val contextMenuViewModelClazz = ::contextMenuViewModelClass.clazz
     XposedBridge.hookAllConstructors(
         contextMenuViewModelClazz, object : XC_MethodHook() {
-            val isPremiumUpsell = ::isPremiumUpsellField.field
-
             override fun beforeHookedMethod(param: MethodHookParam) {
                 val parameterTypes = (param.method as Constructor<*>).parameterTypes
                 Logger.printDebug { "ContextMenuViewModel(${parameterTypes.joinToString(",") { it.name }})" }
@@ -76,9 +101,7 @@ fun SpotifyHook.UnlockPremium() {
                     if (parameterTypes[i].name != "java.util.List") continue
                     val original = param.args[i] as? List<*> ?: continue
                     Logger.printDebug { "List value type: ${original.firstOrNull()?.javaClass}" }
-                    val filtered = original.filter {
-                        it!!.callMethod("getViewModel").let { isPremiumUpsell.get(it) } != true
-                    }
+                    val filtered = original.filterNot { isPremiumContextMenuItem(it) }
                     param.args[i] = filtered
                     Logger.printDebug { "Filtered ${original.size - filtered.size} context menu items." }
                 }

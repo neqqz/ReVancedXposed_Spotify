@@ -1,4 +1,4 @@
-package com.spotify.home.evopage.homeapi.proto;
+package com.spotify.casita.v1.resolved;
 
 public final class Section {
     public static final int VIDEO_BRAND_AD_FIELD_NUMBER = 20;
