@@ -39,11 +39,12 @@ val isPlusUnlockedFingerprint = fingerprint {
 ```kotlin
 package io.github.chsbuffer.revancedxposed.contoso.misc.unlock.plus
 
-import static de.robv.android.xposed.XC_MethodReplacement.returnConstant
 import io.github.chsbuffer.revancedxposed.contoso.ContosoHook
 
 fun ContosoHook.UnlockPlus() {
-    ::isPlusUnlockedFingerprint.hookMethod(returnConstant(true))
+    ::isPlusUnlockedFingerprint.hookMethod {
+        after { param -> param.result = true }
+    }
 }
 ```
 
@@ -52,11 +53,11 @@ fun ContosoHook.UnlockPlus() {
 package io.github.chsbuffer.revancedxposed.contoso
 
 import android.app.Application
-import de.robv.android.xposed.callbacks.XC_LoadPackage
 import io.github.chsbuffer.revancedxposed.BaseHook
 import io.github.chsbuffer.revancedxposed.contoso.misc.unlock.plus.UnlockPlus
+import io.github.chsbuffer.revancedxposed.xposed.LoadPackageParam
 
-class ContosoHook(app: Application, lpparam: XC_LoadPackage.LoadPackageParam) : BaseHook(
+class ContosoHook(app: Application, lpparam: LoadPackageParam) : BaseHook(
     app, lpparam
 ) {
     override val hooks = arrayOf(::UnlockPlus)

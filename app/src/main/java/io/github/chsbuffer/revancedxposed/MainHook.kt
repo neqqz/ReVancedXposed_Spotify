@@ -2,17 +2,23 @@ package io.github.chsbuffer.revancedxposed
 
 import android.app.Application
 import app.revanced.extension.shared.Utils
-import de.robv.android.xposed.IXposedHookLoadPackage
-import de.robv.android.xposed.IXposedHookZygoteInit
-import de.robv.android.xposed.IXposedHookZygoteInit.StartupParam
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
-import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 import io.github.chsbuffer.revancedxposed.spotify.SpotifyHook
+import io.github.chsbuffer.revancedxposed.xposed.LoadPackageParam
+import io.github.chsbuffer.revancedxposed.xposed.MethodHookParam
+import io.github.chsbuffer.revancedxposed.xposed.XC_MethodHook
+import io.github.chsbuffer.revancedxposed.xposed.XposedBridge
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers
+import io.github.chsbuffer.revancedxposed.xposed.xposedModule
+import io.github.libxposed.api.XposedModule
+import io.github.libxposed.api.XposedModuleInterface.ModuleLoadedParam
+import io.github.libxposed.api.XposedModuleInterface.PackageReadyParam
 
-class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
-    lateinit var startupParam: StartupParam
+/**
+ * Modern Xposed API (API 102) entry point.
+ *
+ * The legacy equivalent implemented `IXposedHookLoadPackage` + `IXposedHookZygoteInit`.
+ */
+class MainHook : XposedModule() {
     lateinit var lpparam: LoadPackageParam
     lateinit var app: Application
     var targetPackageName: String? = null
@@ -26,9 +32,21 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
         return targetPackageName == packageName
     }
 
-    override fun handleLoadPackage(lpparam: LoadPackageParam) {
-        if (!lpparam.isFirstApplication) return
-        if (!shouldHook(lpparam.packageName)) return
+    override fun onModuleLoaded(param: ModuleLoadedParam) {
+        xposedModule = this
+        modulePath = moduleApplicationInfo.sourceDir
+    }
+
+    override fun onPackageReady(param: PackageReadyParam) {
+        if (!param.isFirstPackage) return
+        if (!shouldHook(param.packageName)) return
+
+        val lpparam = LoadPackageParam(
+            packageName = param.packageName,
+            appInfo = param.applicationInfo,
+            classLoader = param.classLoader,
+            isFirstApplication = param.isFirstPackage,
+        )
         this.lpparam = lpparam
 
         inContext(lpparam) { app ->
@@ -53,16 +71,14 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
             lpparam.classLoader.loadClass("app.revanced.integrations.shared.utils.Utils")
         }.isSuccess
     }
-
-    override fun initZygote(startupParam: StartupParam) {
-        this.startupParam = startupParam
-        XposedInit = startupParam
-    }
 }
 
 fun inContext(lpparam: LoadPackageParam, f: (Application) -> Unit) {
-    val appClazz = XposedHelpers.findClass(lpparam.appInfo.className, lpparam.classLoader)
-    XposedBridge.hookMethod(appClazz.getMethod("onCreate"), object : XC_MethodHook() {
+    val appClassName = lpparam.appInfo.className ?: Application::class.java.name
+    val appClazz = lpparam.classLoader.loadClass(appClassName)
+    val onCreate = XposedHelpers.findMethodExactIfExists(appClazz, "onCreate")
+        ?: Application::class.java.getMethod("onCreate")
+    XposedBridge.hookMethod(onCreate, object : XC_MethodHook() {
         override fun beforeHookedMethod(param: MethodHookParam) {
             val app = param.thisObject as Application
             Utils.setContext(app)

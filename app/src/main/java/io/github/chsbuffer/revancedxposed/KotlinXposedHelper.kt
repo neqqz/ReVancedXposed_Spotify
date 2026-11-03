@@ -3,33 +3,32 @@
 package io.github.chsbuffer.revancedxposed
 
 import dalvik.system.BaseDexClassLoader
-import de.robv.android.xposed.XC_MethodHook.MethodHookParam
-import de.robv.android.xposed.XposedBridge.invokeOriginalMethod
-import de.robv.android.xposed.XposedHelpers.callMethod
-import de.robv.android.xposed.XposedHelpers.callStaticMethod
-import de.robv.android.xposed.XposedHelpers.findClass
-import de.robv.android.xposed.XposedHelpers.findClassIfExists
-import de.robv.android.xposed.XposedHelpers.findField
-import de.robv.android.xposed.XposedHelpers.findFieldIfExists
-import de.robv.android.xposed.XposedHelpers.findFirstFieldByExactType
-import de.robv.android.xposed.XposedHelpers.getBooleanField
-import de.robv.android.xposed.XposedHelpers.getIntField
-import de.robv.android.xposed.XposedHelpers.getLongField
-import de.robv.android.xposed.XposedHelpers.getObjectField
-import de.robv.android.xposed.XposedHelpers.getStaticObjectField
-import de.robv.android.xposed.XposedHelpers.newInstance
-import de.robv.android.xposed.XposedHelpers.setBooleanField
-import de.robv.android.xposed.XposedHelpers.setFloatField
-import de.robv.android.xposed.XposedHelpers.setIntField
-import de.robv.android.xposed.XposedHelpers.setLongField
-import de.robv.android.xposed.XposedHelpers.setObjectField
-import de.robv.android.xposed.XposedHelpers.setStaticObjectField
+import io.github.chsbuffer.revancedxposed.xposed.XposedBridge.invokeOriginalMethod
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers.callMethod
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers.callStaticMethod
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers.findClass
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers.findClassIfExists
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers.findField
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers.findFieldIfExists
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers.findFirstFieldByExactType
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers.getBooleanField
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers.getIntField
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers.getLongField
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers.getObjectField
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers.getStaticObjectField
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers.newInstance
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers.setBooleanField
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers.setFloatField
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers.setIntField
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers.setLongField
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers.setObjectField
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers.setStaticObjectField
 import java.lang.reflect.Field
 import java.lang.reflect.Member
 import java.lang.reflect.Modifier
 import java.util.Enumeration
 
-typealias MethodHookParam = MethodHookParam
+typealias MethodHookParam = io.github.chsbuffer.revancedxposed.xposed.MethodHookParam
 typealias Replacer = (MethodHookParam) -> Any?
 
 fun MethodHookParam.invokeOriginalMethod(): Any? = invokeOriginalMethod(method, thisObject, args)

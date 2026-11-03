@@ -64,7 +64,9 @@ android {
     packaging.resources {
         excludes.addAll(
             arrayOf(
-                "META-INF/**", "**.bin"
+                // Keep META-INF/xposed/* (modern Xposed module metadata) but drop signature
+                // files and other build artifacts from dependencies.
+                "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/MANIFEST.MF", "**.bin"
             )
         )
     }

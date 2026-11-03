@@ -5,10 +5,9 @@ import android.content.res.loader.ResourcesProvider
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import androidx.annotation.RequiresApi
-import de.robv.android.xposed.IXposedHookZygoteInit
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
+import io.github.chsbuffer.revancedxposed.xposed.XC_MethodHook
+import io.github.chsbuffer.revancedxposed.xposed.XposedBridge
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers
 import java.io.File
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Member
@@ -38,11 +37,11 @@ inline fun Member.hookMethodInternal(
     crossinline before: IHookCallback, crossinline after: IHookCallback
 ) {
     XposedBridge.hookMethod(this, object : XC_MethodHook() {
-        override fun beforeHookedMethod(param: XC_MethodHook.MethodHookParam) {
+        override fun beforeHookedMethod(param: MethodHookParam) {
             before(param)
         }
 
-        override fun afterHookedMethod(param: XC_MethodHook.MethodHookParam) {
+        override fun afterHookedMethod(param: MethodHookParam) {
             after(param)
         }
     })
@@ -90,7 +89,7 @@ class ScopedHook : XC_MethodHook() {
         })
     }
 
-    val outerParam: ThreadLocal<XC_MethodHook.MethodHookParam> = ThreadLocal<MethodHookParam>()
+    val outerParam: ThreadLocal<MethodHookParam> = ThreadLocal<MethodHookParam>()
 
     override fun beforeHookedMethod(param: MethodHookParam) {
         outerParam.set(param)
@@ -101,11 +100,12 @@ class ScopedHook : XC_MethodHook() {
     }
 }
 
-lateinit var XposedInit: IXposedHookZygoteInit.StartupParam
+/** Absolute path of the module APK, assigned on module load. */
+lateinit var modulePath: String
 
 private val resourceLoader by lazy @RequiresApi(Build.VERSION_CODES.R) {
     val fileDescriptor = ParcelFileDescriptor.open(
-        File(XposedInit.modulePath), ParcelFileDescriptor.MODE_READ_ONLY
+        File(modulePath), ParcelFileDescriptor.MODE_READ_ONLY
     )
     val provider = ResourcesProvider.loadFromApk(fileDescriptor)
     val loader = ResourcesLoader()

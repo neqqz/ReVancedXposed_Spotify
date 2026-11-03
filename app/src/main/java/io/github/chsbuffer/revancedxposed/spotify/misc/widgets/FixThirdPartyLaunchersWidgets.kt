@@ -1,8 +1,9 @@
 package io.github.chsbuffer.revancedxposed.spotify.misc.widgets
 
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedHelpers
 import io.github.chsbuffer.revancedxposed.spotify.SpotifyHook
+import io.github.chsbuffer.revancedxposed.xposed.MethodHookParam
+import io.github.chsbuffer.revancedxposed.xposed.XC_MethodHook
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers
 
 private const val BIND_APP_WIDGET = "android.permission.BIND_APPWIDGET"
 

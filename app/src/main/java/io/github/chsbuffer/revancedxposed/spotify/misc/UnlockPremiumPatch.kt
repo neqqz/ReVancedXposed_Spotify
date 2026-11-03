@@ -2,12 +2,13 @@ package io.github.chsbuffer.revancedxposed.spotify.misc
 
 import app.revanced.extension.shared.Logger
 import app.revanced.extension.spotify.misc.UnlockPremiumPatch
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
 import io.github.chsbuffer.revancedxposed.callMethod
 import io.github.chsbuffer.revancedxposed.findFirstFieldByExactType
 import io.github.chsbuffer.revancedxposed.spotify.SpotifyHook
+import io.github.chsbuffer.revancedxposed.xposed.MethodHookParam
+import io.github.chsbuffer.revancedxposed.xposed.XC_MethodHook
+import io.github.chsbuffer.revancedxposed.xposed.XposedBridge
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers
 import org.luckypray.dexkit.wrap.DexField
 import org.luckypray.dexkit.wrap.DexMethod
 import java.lang.reflect.Constructor
@@ -86,7 +87,7 @@ fun SpotifyHook.UnlockPremium() {
         "build",
         object : XC_MethodHook() {
             override fun beforeHookedMethod(param: MethodHookParam) {
-                param.thisObject.callMethod("shufflingContext", false)
+                param.thisObject!!.callMethod("shufflingContext", false)
             }
         })
 
@@ -111,19 +112,19 @@ fun SpotifyHook.UnlockPremium() {
     // Remove ads sections from home.
     ::homeStructureGetSectionsFingerprint.hookMethod {
         after { param ->
-            val sections = param.result
+            val sections = param.result ?: return@after
             // Set sections mutable
             sections.javaClass.findFirstFieldByExactType(Boolean::class.java).set(sections, true)
-            UnlockPremiumPatch.removeHomeSections(param.result as MutableList<*>)
+            UnlockPremiumPatch.removeHomeSections(sections as MutableList<*>)
         }
     }
     // Remove ads sections from browser.
     ::browseStructureGetSectionsFingerprint.hookMethod {
         after { param ->
-            val sections = param.result
+            val sections = param.result ?: return@after
             // Set sections mutable
             sections.javaClass.findFirstFieldByExactType(Boolean::class.java).set(sections, true)
-            UnlockPremiumPatch.removeBrowseSections(param.result as MutableList<*>)
+            UnlockPremiumPatch.removeBrowseSections(sections as MutableList<*>)
         }
     }
 
@@ -136,8 +137,9 @@ fun SpotifyHook.UnlockPremium() {
             DexField("Lio/reactivex/rxjava3/internal/operators/single/SingleOnErrorReturn;->b:Lio/reactivex/rxjava3/functions/Function;").toField()
 
         override fun afterHookedMethod(param: MethodHookParam) {
-            if (!param.result.javaClass.name.endsWith("SingleOnErrorReturn")) return
-            val justError = justMethod.invoke(null, onErrorField.get(param.result))
+            val result = param.result ?: return
+            if (!result.javaClass.name.endsWith("SingleOnErrorReturn")) return
+            val justError = justMethod.invoke(null, onErrorField.get(result))
             param.result = justError
         }
     }

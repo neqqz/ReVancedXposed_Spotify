@@ -34,6 +34,10 @@ There is something you need to know in order to use it, so find it on the xManag
 > [!NOTE]  
 > The package name and signature of this build are different every day. You don't have to reinstall it every day.
 
+> [!IMPORTANT]
+> This module targets the modern **Xposed API 102** (`io.github.libxposed:api`).
+> It requires an Xposed framework with API 102 support (e.g. a recent LSPosed build) and will not load on legacy API 82 frameworks.
+
 ## ⭐ Credits
 
 [DexKit](https://luckypray.org/DexKit/en/): a high-performance dex runtime parsing library.  

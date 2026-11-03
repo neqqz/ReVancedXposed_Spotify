@@ -3,11 +3,12 @@ package io.github.chsbuffer.revancedxposed.spotify.misc.privacy
 import android.content.ClipData
 import android.content.Intent
 import app.revanced.extension.spotify.misc.privacy.SanitizeSharingLinksPatch
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
 import io.github.chsbuffer.revancedxposed.scopedHook
 import io.github.chsbuffer.revancedxposed.spotify.SpotifyHook
+import io.github.chsbuffer.revancedxposed.xposed.MethodHookParam
+import io.github.chsbuffer.revancedxposed.xposed.XC_MethodHook
+import io.github.chsbuffer.revancedxposed.xposed.XposedBridge
+import io.github.chsbuffer.revancedxposed.xposed.XposedHelpers
 
 fun SpotifyHook.SanitizeSharingLinks() {
     ::shareCopyUrlFingerprint.hookMethod(

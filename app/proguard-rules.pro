@@ -13,7 +13,9 @@
 #   public *;
 #}
 
--keep,allowobfuscation class io.github.chsbuffer.revancedxposed.MainHook { <init>(); }
+-keep,allowoptimization,allowobfuscation class io.github.chsbuffer.revancedxposed.MainHook { public <init>(); }
+-adaptresourcefilecontents META-INF/xposed/java_init.list
+-dontwarn io.github.libxposed.annotation.**
 -applymapping mapping.txt
 -keepclassmembers class **.* {
     public <init>(android.content.Context, android.util.AttributeSet);
