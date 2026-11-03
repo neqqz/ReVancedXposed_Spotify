@@ -27,7 +27,8 @@ val buildQueryParametersFingerprint = findMethodDirect {
 }
 val contextFromJsonFingerprint = fingerprint {
     returns("Lcom/spotify/player/model/Context;")
-    parameters("Lp/fzq;")
+    // The decoder parameter type is obfuscated and changes between releases
+    // (p/fzq in 9.1.94, p/dar in 9.1.98), so do not pin it.
     methodMatcher {
         name("deserialize")
         declaredClass("com.spotify.voiceassistants.playermodels.ContextSerializer")

@@ -111,6 +111,14 @@ interface ResourceFinder {
     operator fun get(type: String, name: String): Int
 }
 
+/**
+ * Resolves Android resource ids for fingerprints which match on literals.
+ *
+ * Populated by the unit test setup (and left uninitialized at runtime, where fingerprints
+ * never need resource ids).
+ */
+lateinit var resourceMappings: ResourceFinder
+
 typealias FindFunc = DexKitBridge.() -> Any
 typealias FindClassFunc = DexKitBridge.() -> ClassData
 typealias FindMethodFunc = DexKitBridge.() -> MethodData
